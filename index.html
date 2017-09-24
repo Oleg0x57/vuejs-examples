@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Vuejs tutorial</title>
+    <script src="https://unpkg.com/vue"></script>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+</head>
+<body>
+<div id="taskList">
+    <template v-if="editMode">
+        <input v-model="editTaskTitle" v-on:keyup.enter="saveTask(editTaskIndex)"/>
+    </template>
+    <template v-else>
+        <input v-model="newTaskTitle" v-on:keyup.enter="addNewTask" placeholder="add new task"/>
+    </template>
+    <ol>
+        <li is="task-item"
+            v-for="(task, index ) in tasks"
+            v-bind:key="task.id"
+            v-bind:title="task.title"
+            v-on:remove="tasks.splice(index, 1)"
+            v-on:edit="editTask(index)"
+            v-on:complete="completeTask(index)">
+        </li>
+    </ol>
+</div>
+<style type="text/css">
+    .isDone {
+        text-decoration: line-through;
+    }
+</style>
+<script>
+    Vue.component('task-item', {
+        template: '<li>{{title}}' +
+        '<button v-on:click="$emit(\'edit\')">\\</button>' +
+        '<button v-on:click="$emit(\'complete\')">V</button>' +
+        '<button v-on:click="$emit(\'remove\')">X</button>' +
+        '</li>',
+        props: ['title', 'is_done']
+    });
+    var taskApp = new Vue({
+        el: '#taskList',
+        data: {
+            newTaskTitle: '',
+            editTaskTitle: '',
+            editMode: false,
+            editTaskIndex: undefined,
+            tasks: [
+                {id: 1, title: 'list', is_done: true},
+                {id: 2, title: 'using components for list', is_done: true},
+                {id: 3, title: 'add new', is_done: true},
+                {id: 4, title: 'edit existing', is_done: true},
+                {id: 5, title: 'delete existing', is_done: true},
+                {id: 6, title: 'complete existing', is_done: true},
+                {id: 7, title: 'using components for form', is_done: false},
+                {id: 8, title: 'sort', is_done: false},
+                {id: 9, title: 'filter', is_done: false},
+                {id: 10, title: 'paging', is_done: false}
+            ],
+            nextId: 11
+        },
+        methods: {
+            addNewTask: function () {
+                this.tasks.push({
+                    id: this.nextId++,
+                    title: this.newTaskTitle,
+                    is_done: false
+                });
+                this.newTaskTitle = '';
+            },
+            editTask: function (index) {
+                this.editTaskTitle = this.tasks[index].title;
+                this.editTaskIndex = index;
+                this.editMode = true;
+            },
+            saveTask: function (index) {
+                console.log(this.tasks[index]);
+                this.tasks[index].title = this.editTaskTitle;
+                this.editTaskTitle = '';
+                this.editTaskIndex = undefined;
+                this.editMode = false;
+            },
+            completeTask: function (index) {
+                if (!this.tasks[index].is_done) {
+                    this.tasks[index].is_done = true;
+                }
+            }
+        }
+    });
+</script>
+</body>
+</html>
