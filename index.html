@@ -4,28 +4,13 @@
     <meta charset="UTF-8">
     <title>Vuejs tutorial</title>
     <script src="https://unpkg.com/vue"></script>
-    <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
           integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 </head>
 <body>
 <div id="taskList">
-    <template v-if="editMode">
-        <input v-model="editTaskTitle" v-on:keyup.enter="saveTask(editTaskIndex)"/>
-    </template>
-    <template v-else>
-        <input v-model="newTaskTitle" v-on:keyup.enter="addNewTask" placeholder="add new task"/>
-    </template>
-    <ol>
-        <li is="task-item"
-            v-for="(task, index ) in tasks"
-            v-bind:key="task.id"
-            v-bind:title="task.title"
-            v-on:remove="tasks.splice(index, 1)"
-            v-on:edit="editTask(index)"
-            v-on:complete="completeTask(index)">
-        </li>
-    </ol>
+    <task-input></task-input>
+    <task-list></task-list>
 </div>
 <style type="text/css">
     .isDone {
@@ -33,61 +18,162 @@
     }
 </style>
 <script>
-    Vue.component('task-item', {
-        template: '<li>{{title}}' +
-        '<button v-on:click="$emit(\'edit\')">\\</button>' +
-        '<button v-on:click="$emit(\'complete\')">V</button>' +
-        '<button v-on:click="$emit(\'remove\')">X</button>' +
-        '</li>',
-        props: ['title', 'is_done']
-    });
-    var taskApp = new Vue({
-        el: '#taskList',
-        data: {
-            newTaskTitle: '',
-            editTaskTitle: '',
-            editMode: false,
-            editTaskIndex: undefined,
-            tasks: [
-                {id: 1, title: 'list', is_done: true},
-                {id: 2, title: 'using components for list', is_done: true},
-                {id: 3, title: 'add new', is_done: true},
-                {id: 4, title: 'edit existing', is_done: true},
-                {id: 5, title: 'delete existing', is_done: true},
-                {id: 6, title: 'complete existing', is_done: true},
-                {id: 7, title: 'using components for form', is_done: false},
-                {id: 8, title: 'sort', is_done: false},
-                {id: 9, title: 'filter', is_done: false},
-                {id: 10, title: 'paging', is_done: false}
-            ],
-            nextId: 11
+    var bus = new Vue();
+    var TaskInput = {
+        created: function () {
+            var self = this;
+            bus.$on('openTaskForEdit', function (taskTitle, taskIndex) {
+                self.value = taskTitle;
+                self.taskIndex = taskIndex;
+            });
+        },
+        updated: function () {
+            console.log(self.value);
+            console.log(self.taskIndex);
+        },
+        template: '<input v-bind:value="inputValue" v-on:keyup.enter="saveValue($event.target.value)"/>',
+        props: ['inputValue'],
+        data: function () {
+            return {
+                innerInputValue: this.value
+            }
         },
         methods: {
-            addNewTask: function () {
-                this.tasks.push({
-                    id: this.nextId++,
-                    title: this.newTaskTitle,
-                    is_done: false
-                });
-                this.newTaskTitle = '';
+            saveValue: function (value) {
+                this.value = value;
+                if (this.taskIndex) {
+                    bus.$emit('editTask', this.value, this.taskIndex);
+                    this.taskIndex = undefined;
+                } else {
+                    bus.$emit('createNewTask', this.value);
+                }
+                this.value = '';
+            }
+        }
+    };
+    var TaskCompleteButton = {
+        template: '<button v-on:click="completeTask">V</button>',
+        methods: {
+            completeTask: function () {
+                this.$emit('complete');
+            }
+        }
+    };
+    var TaskDeleteButton = {
+        template: '<button v-on:click="deleteTask">X</button>',
+        methods: {
+            deleteTask: function () {
+                this.$emit('delete');
+            }
+        }
+    };
+    var TaskEditButton = {
+        template: '<button v-on:click="editTask">\\</button>',
+        methods: {
+            editTask: function () {
+                this.$emit('edit');
+            }
+        }
+    };
+    var TaskItem = {
+        components: {
+            'task-edit-button': TaskEditButton,
+            'task-complete-button': TaskCompleteButton,
+            'task-delete-button': TaskDeleteButton
+        },
+        template: '<li class = "task" v-bind:class="{isDone : isDone}">{{title}}' +
+        '<task-edit-button v-on:edit="editTask"></task-edit-button>' +
+        '<task-complete-button v-on:complete="completeTask"></task-complete-button>' +
+        '<task-delete-button v-on:delete="deleteTask"></task-delete-button>' +
+        '</li>',
+        props: ['title', 'is_done'],
+        data: function () {
+            return {
+                isDone: this.is_done,
+                selfTitle: this.title
+            };
+        },
+        methods: {
+            completeTask: function () {
+                this.isDone = true;
+            },
+            deleteTask: function () {
+                this.$emit('remove');
+            },
+            editTask: function () {
+                this.$emit('edit');
+            }
+        }
+    };
+    var TaskList = {
+        components: {
+            'task-item': TaskItem
+        },
+        created: function () {
+            var self = this;
+            bus.$on('createNewTask', function (newTitle) {
+                self.addTask(newTitle);
+            });
+            bus.$on('editTask', function (newTitle, index) {
+                self.saveTask(newTitle, index);
+            });
+        },
+        template: '<ol>' +
+        '<li is="task-item"' +
+        'v-for="(task, index ) in tasks"' +
+        'v-bind:key="task.id"' +
+        'v-bind:title="task.title"' +
+        'v-bind:is_done="task.is_done"' +
+        'v-on:remove="deleteTask(index)"' +
+        'v-on:edit="editTask(index)">' +
+        '</li>' +
+        '</ol>',
+        data: function () {
+            return {
+                tasks: [
+                    {id: 1, title: 'list', is_done: true},
+                    {id: 2, title: 'using components for list', is_done: true},
+                    {id: 3, title: 'add new', is_done: true},
+                    {id: 4, title: 'edit existing', is_done: true},
+                    {id: 5, title: 'delete existing', is_done: true},
+                    {id: 6, title: 'complete existing', is_done: true},
+                    {id: 7, title: 'using components for form', is_done: false},
+                    {id: 8, title: 'sort', is_done: false},
+                    {id: 9, title: 'filter', is_done: false},
+                    {id: 10, title: 'paging', is_done: false}
+                ],
+                nextId: 11
+            }
+        },
+        methods: {
+            deleteTask: function (index) {
+                this.tasks.splice(index, 1);
             },
             editTask: function (index) {
-                this.editTaskTitle = this.tasks[index].title;
-                this.editTaskIndex = index;
-                this.editMode = true;
+                bus.$emit('openTaskForEdit', this.tasks[index].title, index);
             },
-            saveTask: function (index) {
-                console.log(this.tasks[index]);
-                this.tasks[index].title = this.editTaskTitle;
-                this.editTaskTitle = '';
-                this.editTaskIndex = undefined;
-                this.editMode = false;
+            saveTask: function (newTitle, index) {
+                this.tasks[index].title = newTitle;
             },
-            completeTask: function (index) {
-                if (!this.tasks[index].is_done) {
-                    this.tasks[index].is_done = true;
-                }
+            addTask: function (newTitle) {
+                this.tasks.push({
+                    id: this.nextId++,
+                    title: newTitle,
+                    is_done: false
+                });
             }
+        }
+    };
+
+    var taskApp = new Vue({
+        el: '#taskList',
+        components: {
+            'task-input': TaskInput,
+            'task-list': TaskList
+        },
+        data: {
+            inputValue: '',
+            taskIndex: undefined
         }
     });
 </script>
