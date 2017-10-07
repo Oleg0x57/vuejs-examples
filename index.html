@@ -8,19 +8,20 @@
           integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 </head>
 <body>
-<div id="taskList">
-    <task-input v-model="inputValue"></task-input>
-    <task-list></task-list>
+<div class="container">
+    <div class="row">
+        <div id="taskList">
+            <task-input v-model="inputValue"></task-input>
+            <task-list></task-list>
+        </div>
+    </div>
 </div>
-<style type="text/css">
-    .isDone {
-        text-decoration: line-through;
-    }
-</style>
 <script>
     var bus = new Vue();
     var TaskInput = {
-        template: '<input v-bind:value="value" v-on:keyup.enter="saveValue($event.target.value)"/>',
+        template: '<div class="form-group"><label>Title:</label>' +
+        '<input class="form-control" v-bind:value="value" v-on:keyup.enter="saveValue($event.target.value)"/>' +
+        '</div>',
         props: ['value'],
         data: function () {
             return {
@@ -34,7 +35,9 @@
         }
     };
     var TaskCompleteButton = {
-        template: '<button v-on:click="completeTask">V</button>',
+        template: '<button v-on:click="completeTask">' +
+        '<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>' +
+        '</button>',
         methods: {
             completeTask: function () {
                 this.$emit('complete');
@@ -42,7 +45,9 @@
         }
     };
     var TaskDeleteButton = {
-        template: '<button v-on:click="deleteTask">X</button>',
+        template: '<button v-on:click="deleteTask">' +
+        '<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>' +
+        '</button>',
         methods: {
             deleteTask: function () {
                 this.$emit('delete');
@@ -50,7 +55,9 @@
         }
     };
     var TaskEditButton = {
-        template: '<button v-on:click="editTask">\\</button>',
+        template: '<button v-on:click="editTask">' +
+        '<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>' +
+        '</button>',
         methods: {
             editTask: function () {
                 this.$emit('edit');
@@ -63,10 +70,12 @@
             'task-complete-button': TaskCompleteButton,
             'task-delete-button': TaskDeleteButton
         },
-        template: '<li class = "task" v-bind:class="{isDone : isDone}">{{title}}' +
+        template: '<li class = "list-group-item" v-bind:class="{disabled : isDone}">{{title}}' +
+        '<div class="btn-group pull-right">' +
         '<task-edit-button v-on:edit="editTask"></task-edit-button>' +
         '<task-complete-button v-on:complete="completeTask"></task-complete-button>' +
         '<task-delete-button v-on:delete="deleteTask"></task-delete-button>' +
+        '</div>' +
         '</li>',
         props: ['title', 'is_done'],
         data: function () {
@@ -100,7 +109,7 @@
                 self.saveTask(newTitle, index);
             });
         },
-        template: '<ol>' +
+        template: '<ul class="list-group">' +
         '<li is="task-item"' +
         'v-for="(task, index ) in tasks"' +
         'v-bind:key="task.id"' +
@@ -109,7 +118,7 @@
         'v-on:remove="deleteTask(index)"' +
         'v-on:edit="editTask(index)">' +
         '</li>' +
-        '</ol>',
+        '</ul>',
         data: function () {
             return {
                 tasks: [
