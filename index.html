@@ -9,7 +9,7 @@
 </head>
 <body>
 <div id="taskList">
-    <task-input></task-input>
+    <task-input v-model="inputValue"></task-input>
     <task-list></task-list>
 </div>
 <style type="text/css">
@@ -23,16 +23,11 @@
         created: function () {
             var self = this;
             bus.$on('openTaskForEdit', function (taskTitle, taskIndex) {
-                self.value = taskTitle;
                 self.taskIndex = taskIndex;
             });
         },
-        updated: function () {
-            console.log(self.value);
-            console.log(self.taskIndex);
-        },
-        template: '<input v-bind:value="inputValue" v-on:keyup.enter="saveValue($event.target.value)"/>',
-        props: ['inputValue'],
+        template: '<input v-bind:value="value" v-on:keyup.enter="saveValue($event.target.value)"/>',
+        props: ['value'],
         data: function () {
             return {
                 innerInputValue: this.value
@@ -40,14 +35,14 @@
         },
         methods: {
             saveValue: function (value) {
-                this.value = value;
+                this.innerInputValue = value;
                 if (this.taskIndex) {
-                    bus.$emit('editTask', this.value, this.taskIndex);
+                    bus.$emit('editTask', this.innerInputValue, this.taskIndex);
                     this.taskIndex = undefined;
                 } else {
-                    bus.$emit('createNewTask', this.value);
+                    bus.$emit('createNewTask', this.innerInputValue);
                 }
-                this.value = '';
+                this.innerInputValue = '';
             }
         }
     };
@@ -115,6 +110,7 @@
                 self.addTask(newTitle);
             });
             bus.$on('editTask', function (newTitle, index) {
+                console.log(newTitle);
                 self.saveTask(newTitle, index);
             });
         },
@@ -167,13 +163,18 @@
 
     var taskApp = new Vue({
         el: '#taskList',
+        created: function () {
+            var self = this;
+            bus.$on('openTaskForEdit', function (taskTitle, taskIndex) {
+                self.inputValue = taskTitle;
+            });
+        },
         components: {
             'task-input': TaskInput,
             'task-list': TaskList
         },
         data: {
-            inputValue: '',
-            taskIndex: undefined
+            inputValue: ''
         }
     });
 </script>
