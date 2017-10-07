@@ -20,12 +20,6 @@
 <script>
     var bus = new Vue();
     var TaskInput = {
-        created: function () {
-            var self = this;
-            bus.$on('openTaskForEdit', function (taskTitle, taskIndex) {
-                self.taskIndex = taskIndex;
-            });
-        },
         template: '<input v-bind:value="value" v-on:keyup.enter="saveValue($event.target.value)"/>',
         props: ['value'],
         data: function () {
@@ -35,14 +29,7 @@
         },
         methods: {
             saveValue: function (value) {
-                this.innerInputValue = value;
-                if (this.taskIndex) {
-                    bus.$emit('editTask', this.innerInputValue, this.taskIndex);
-                    this.taskIndex = undefined;
-                } else {
-                    bus.$emit('createNewTask', this.innerInputValue);
-                }
-                this.innerInputValue = '';
+                bus.$emit('saveInputValue', value);
             }
         }
     };
@@ -110,7 +97,6 @@
                 self.addTask(newTitle);
             });
             bus.$on('editTask', function (newTitle, index) {
-                console.log(newTitle);
                 self.saveTask(newTitle, index);
             });
         },
@@ -167,14 +153,35 @@
             var self = this;
             bus.$on('openTaskForEdit', function (taskTitle, taskIndex) {
                 self.inputValue = taskTitle;
+                self.editTaskId = taskIndex;
             });
+            bus.$on('saveInputValue', function (taskTitle) {
+                self.inputValue = taskTitle;
+                if (self.editTaskId) {
+                    self.emitEditTask();
+                } else {
+                    self.emitCreateTask();
+                }
+                self.inputValue = '';
+            });
+
         },
         components: {
             'task-input': TaskInput,
             'task-list': TaskList
         },
         data: {
-            inputValue: ''
+            inputValue: '',
+            editTaskId: undefined
+        },
+        methods: {
+            emitEditTask: function () {
+                bus.$emit('editTask', this.inputValue, this.editTaskId);
+                this.editTaskId = undefined;
+            },
+            emitCreateTask: function () {
+                bus.$emit('createNewTask', this.inputValue);
+            }
         }
     });
 </script>
