@@ -129,18 +129,17 @@
                 this.$emit('edit', this.tasks[index].title);
             },
             saveTask: function (newTitle) {
-                if (this.editId !== null) {
-                    if (this.tasks[this.editId].title !== newTitle) {
-                        this.tasks[this.editId].title = newTitle;
-                        this.editId = null;
-                    } else {
-                    }
-                } else {
+                if (this.editId === null) {
                     this.tasks.push({
                         id: this.nextId++,
                         title: newTitle,
                         is_done: false
                     });
+                } else if (this.tasks[this.editId].title === newTitle) {
+                    //title doesn't change yet
+                } else {
+                    this.tasks[this.editId].title = newTitle;
+                    this.editId = null;
                 }
             }
         }
@@ -149,8 +148,8 @@
     var taskApp = new Vue({
         el: '#taskList',
         template: '<div class="container"><div class="row">' +
-        '<task-input v-on:save="saveInputValue" v-model="inputValue"></task-input>' +
-        '<task-list v-on:edit="openTaskForEdit" v-bind:task-title="inputValue"></task-list>' +
+        '<task-input v-on:save="setInputValue" v-model="inputValue"></task-input>' +
+        '<task-list v-on:edit="setInputValue" v-bind:task-title="inputValue"></task-list>' +
         '</div></div>',
         components: {
             'task-input': TaskInput,
@@ -160,10 +159,7 @@
             inputValue: ''
         },
         methods: {
-            openTaskForEdit: function (taskTitle) {
-                this.inputValue = taskTitle;
-            },
-            saveInputValue: function (taskTitle) {
+            setInputValue: function (taskTitle) {
                 this.inputValue = taskTitle;
             }
         }
