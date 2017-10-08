@@ -8,14 +8,7 @@
           integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 </head>
 <body>
-<div class="container">
-    <div class="row">
-        <div id="taskList">
-            <task-input v-model="inputValue"></task-input>
-            <task-list></task-list>
-        </div>
-    </div>
-</div>
+<div id="taskList"></div>
 <script>
     var bus = new Vue();
     var TaskInput = {
@@ -23,14 +16,10 @@
         '<input class="form-control" v-bind:value="value" v-on:keyup.enter="saveValue($event.target.value)"/>' +
         '</div>',
         props: ['value'],
-        data: function () {
-            return {
-                innerInputValue: this.value
-            }
-        },
         methods: {
             saveValue: function (value) {
-                bus.$emit('saveInputValue', value);
+                console.log('value is: ' + value);
+                this.$emit('save', value);
             }
         }
     };
@@ -80,8 +69,7 @@
         props: ['title', 'is_done'],
         data: function () {
             return {
-                isDone: this.is_done,
-                selfTitle: this.title
+                isDone: this.is_done
             };
         },
         methods: {
@@ -89,7 +77,7 @@
                 this.isDone = true;
             },
             deleteTask: function () {
-                this.$emit('remove');
+                this.$emit('delete');
             },
             editTask: function () {
                 this.$emit('edit');
@@ -102,11 +90,8 @@
         },
         created: function () {
             var self = this;
-            bus.$on('createNewTask', function (newTitle) {
-                self.addTask(newTitle);
-            });
-            bus.$on('editTask', function (newTitle, index) {
-                self.saveTask(newTitle, index);
+            bus.$on('saveTask', function (newTitle) {
+                self.saveTask(newTitle);
             });
         },
         template: '<ul class="list-group">' +
@@ -115,7 +100,7 @@
         'v-bind:key="task.id"' +
         'v-bind:title="task.title"' +
         'v-bind:is_done="task.is_done"' +
-        'v-on:remove="deleteTask(index)"' +
+        'v-on:delete="deleteTask(index)"' +
         'v-on:edit="editTask(index)">' +
         '</li>' +
         '</ul>',
@@ -133,7 +118,8 @@
                     {id: 9, title: 'filter', is_done: false},
                     {id: 10, title: 'paging', is_done: false}
                 ],
-                nextId: 11
+                nextId: 11,
+                editId: null
             }
         },
         methods: {
@@ -141,55 +127,48 @@
                 this.tasks.splice(index, 1);
             },
             editTask: function (index) {
-                bus.$emit('openTaskForEdit', this.tasks[index].title, index);
+                this.editId = index;
+                this.$emit('edit', this.tasks[index].title);
+                console.log('edit: ' + this.editId);
             },
-            saveTask: function (newTitle, index) {
-                this.tasks[index].title = newTitle;
-            },
-            addTask: function (newTitle) {
-                this.tasks.push({
-                    id: this.nextId++,
-                    title: newTitle,
-                    is_done: false
-                });
+            saveTask: function (newTitle) {
+                console.log('save: ' + this.editId);
+                if (this.editId !== null) {
+                    this.tasks[this.editId].title = newTitle;
+                    this.editId = null;
+                } else {
+                    this.tasks.push({
+                        id: this.nextId++,
+                        title: newTitle,
+                        is_done: false
+                    });
+                }
             }
         }
     };
 
     var taskApp = new Vue({
         el: '#taskList',
-        created: function () {
-            var self = this;
-            bus.$on('openTaskForEdit', function (taskTitle, taskIndex) {
-                self.inputValue = taskTitle;
-                self.editTaskId = taskIndex;
-            });
-            bus.$on('saveInputValue', function (taskTitle) {
-                self.inputValue = taskTitle;
-                if (self.editTaskId) {
-                    self.emitEditTask();
-                } else {
-                    self.emitCreateTask();
-                }
-                self.inputValue = '';
-            });
-
-        },
+        template: '<div class="container"><div class="row">' +
+        '<task-input v-on:save="saveInputValue" v-model="inputValue"></task-input>' +
+        '<task-list v-on:edit="openTaskForEdit"></task-list>' +
+        '</div></div>',
         components: {
             'task-input': TaskInput,
             'task-list': TaskList
         },
         data: {
-            inputValue: '',
-            editTaskId: undefined
+            inputValue: ''
         },
         methods: {
-            emitEditTask: function () {
-                bus.$emit('editTask', this.inputValue, this.editTaskId);
-                this.editTaskId = undefined;
+            openTaskForEdit: function (taskTitle) {
+                this.inputValue = taskTitle;
             },
-            emitCreateTask: function () {
-                bus.$emit('createNewTask', this.inputValue);
+            saveInputValue: function (taskTitle) {
+                this.inputValue = taskTitle;
+                bus.$emit('saveTask', this.inputValue);
+                this.inputValue = '';
+                console.log('input must be an empty');
             }
         }
     });
