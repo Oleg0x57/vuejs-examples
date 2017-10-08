@@ -10,7 +10,7 @@ var TaskInput = {
     }
 },
 TaskCompleteButton = {
-    template: '<button @click="completeTask">' +
+    template: '<button class="btn btn-xs btn-success" @click="completeTask">' +
     '<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>' +
     '</button>',
     methods: {
@@ -20,7 +20,7 @@ TaskCompleteButton = {
     }
 },
 TaskDeleteButton = {
-    template: '<button @click="deleteTask">' +
+    template: '<button class="btn btn-xs btn-danger" @click="deleteTask">' +
     '<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>' +
     '</button>',
     methods: {
@@ -30,7 +30,7 @@ TaskDeleteButton = {
     }
 },
 TaskEditButton = {
-    template: '<button @click="editTask">' +
+    template: '<button class="btn btn-xs btn-info" @click="editTask">' +
     '<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>' +
     '</button>',
     methods: {
