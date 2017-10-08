@@ -1,6 +1,6 @@
 var TaskInput = {
     template: '<div class="form-group"><label>Title:</label>' +
-    '<input class="form-control" v-bind:value="value" v-on:keyup.enter="saveValue($event.target.value)"/>' +
+    '<input class="form-control" :value="value" @keyup.enter="saveValue($event.target.value)"/>' +
     '</div>',
     props: ['value'],
     methods: {
@@ -8,9 +8,9 @@ var TaskInput = {
             this.$emit('save', value);
         }
     }
-};
-var TaskCompleteButton = {
-    template: '<button v-on:click="completeTask">' +
+},
+TaskCompleteButton = {
+    template: '<button @click="completeTask">' +
     '<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>' +
     '</button>',
     methods: {
@@ -18,9 +18,9 @@ var TaskCompleteButton = {
             this.$emit('complete');
         }
     }
-};
-var TaskDeleteButton = {
-    template: '<button v-on:click="deleteTask">' +
+},
+TaskDeleteButton = {
+    template: '<button @click="deleteTask">' +
     '<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>' +
     '</button>',
     methods: {
@@ -28,9 +28,9 @@ var TaskDeleteButton = {
             this.$emit('delete');
         }
     }
-};
-var TaskEditButton = {
-    template: '<button v-on:click="editTask">' +
+},
+TaskEditButton = {
+    template: '<button @click="editTask">' +
     '<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>' +
     '</button>',
     methods: {
@@ -38,18 +38,18 @@ var TaskEditButton = {
             this.$emit('edit');
         }
     }
-};
-var TaskItem = {
+},
+TaskItem = {
     components: {
         'task-edit-button': TaskEditButton,
         'task-complete-button': TaskCompleteButton,
         'task-delete-button': TaskDeleteButton
     },
-    template: '<li class = "list-group-item" v-bind:class="{disabled : isDone}">{{title}}' +
+    template: '<li class = "list-group-item" :class="{disabled : isDone}">{{title}}' +
     '<div class="btn-group pull-right">' +
-    '<task-edit-button v-on:edit="editTask"></task-edit-button>' +
-    '<task-complete-button v-on:complete="completeTask"></task-complete-button>' +
-    '<task-delete-button v-on:delete="deleteTask"></task-delete-button>' +
+    '<task-edit-button @edit="editTask"></task-edit-button>' +
+    '<task-complete-button @complete="completeTask"></task-complete-button>' +
+    '<task-delete-button @delete="deleteTask"></task-delete-button>' +
     '</div>' +
     '</li>',
     props: ['title', 'is_done'],
@@ -69,8 +69,8 @@ var TaskItem = {
             this.$emit('edit');
         }
     }
-};
-var TaskList = {
+},
+TaskList = {
     components: {
         'task-item': TaskItem
     },
@@ -83,11 +83,11 @@ var TaskList = {
     template: '<ul class="list-group">' +
     '<li is="task-item"' +
     'v-for="(task, index ) in tasks"' +
-    'v-bind:key="task.id"' +
-    'v-bind:title="task.title"' +
-    'v-bind:is_done="task.is_done"' +
-    'v-on:delete="deleteTask(index)"' +
-    'v-on:edit="editTask(index)">' +
+    ':key="task.id"' +
+    ':title="task.title"' +
+    ':is_done="task.is_done"' +
+    '@delete="deleteTask(index)"' +
+    '@edit="editTask(index)">' +
     '</li>' +
     '</ul>',
     data: function () {
@@ -131,13 +131,12 @@ var TaskList = {
             }
         }
     }
-};
-
-var taskApp = new Vue({
+},
+taskApp = new Vue({
     el: '#taskList',
     template: '<div class="container"><div class="row">' +
-    '<task-input v-on:save="setInputValue" v-model="inputValue"></task-input>' +
-    '<task-list v-on:edit="setInputValue" v-bind:task-title="inputValue"></task-list>' +
+    '<task-input @save="setInputValue" v-model="inputValue"></task-input>' +
+    '<task-list @edit="setInputValue" :task-title="inputValue"></task-list>' +
     '</div></div>',
     components: {
         'task-input': TaskInput,
