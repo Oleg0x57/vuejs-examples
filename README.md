@@ -1,2 +1,2 @@
 # first-vuejs
-It is my first project on Vuejs.
+This project is educational. Its goal is to create a ToDo application without copying the code from similar examples, only using the documentation and the stackoverflow resource.
