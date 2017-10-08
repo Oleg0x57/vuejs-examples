@@ -10,7 +10,6 @@
 <body>
 <div id="taskList"></div>
 <script>
-    var bus = new Vue();
     var TaskInput = {
         template: '<div class="form-group"><label>Title:</label>' +
         '<input class="form-control" v-bind:value="value" v-on:keyup.enter="saveValue($event.target.value)"/>' +
@@ -18,7 +17,6 @@
         props: ['value'],
         methods: {
             saveValue: function (value) {
-                console.log('value is: ' + value);
                 this.$emit('save', value);
             }
         }
@@ -88,11 +86,11 @@
         components: {
             'task-item': TaskItem
         },
-        created: function () {
-            var self = this;
-            bus.$on('saveTask', function (newTitle) {
-                self.saveTask(newTitle);
-            });
+        props: ['taskTitle'],
+        watch: {
+            taskTitle: function (newTitle) {
+                this.saveTask(newTitle);
+            }
         },
         template: '<ul class="list-group">' +
         '<li is="task-item"' +
@@ -129,13 +127,14 @@
             editTask: function (index) {
                 this.editId = index;
                 this.$emit('edit', this.tasks[index].title);
-                console.log('edit: ' + this.editId);
             },
             saveTask: function (newTitle) {
-                console.log('save: ' + this.editId);
                 if (this.editId !== null) {
-                    this.tasks[this.editId].title = newTitle;
-                    this.editId = null;
+                    if (this.tasks[this.editId].title !== newTitle) {
+                        this.tasks[this.editId].title = newTitle;
+                        this.editId = null;
+                    } else {
+                    }
                 } else {
                     this.tasks.push({
                         id: this.nextId++,
@@ -151,7 +150,7 @@
         el: '#taskList',
         template: '<div class="container"><div class="row">' +
         '<task-input v-on:save="saveInputValue" v-model="inputValue"></task-input>' +
-        '<task-list v-on:edit="openTaskForEdit"></task-list>' +
+        '<task-list v-on:edit="openTaskForEdit" v-bind:task-title="inputValue"></task-list>' +
         '</div></div>',
         components: {
             'task-input': TaskInput,
@@ -166,9 +165,6 @@
             },
             saveInputValue: function (taskTitle) {
                 this.inputValue = taskTitle;
-                bus.$emit('saveTask', this.inputValue);
-                this.inputValue = '';
-                console.log('input must be an empty');
             }
         }
     });
