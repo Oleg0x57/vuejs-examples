@@ -1,2 +1,6 @@
-# Yet another ToDo app
-This project is educational. Its goal is to create a ToDo application without copying the code from similar examples, only using the documentation and the stackoverflow resource.
+# Vuejs examples
+In this repository there are several small learning examples.
+
+[Tasks list](https://oleg0x57.github.io/vuejs-examples/tasks-list/)
+
+[Tasks board](https://oleg0x57.github.io/vuejs-examples/tasks-board/)
