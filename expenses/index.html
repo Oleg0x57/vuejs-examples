@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Expenses</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-orange.min.css"/>
+    <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="mdl-layout mdl-js-layout mdl-layout--fixed-drawer
+            mdl-layout--fixed-header">
+    <header class="mdl-layout__header">
+        <div class="mdl-layout__header-row">
+            <div class="mdl-layout-spacer"></div>
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--expandable
+                  mdl-textfield--floating-label mdl-textfield--align-right">
+                <label class="mdl-button mdl-js-button mdl-button--icon"
+                       for="fixed-header-drawer-exp">
+                    <i class="material-icons">search</i>
+                </label>
+                <div class="mdl-textfield__expandable-holder">
+                    <input class="mdl-textfield__input" type="text" name="sample"
+                           id="fixed-header-drawer-exp">
+                </div>
+            </div>
+        </div>
+    </header>
+    <div class="mdl-layout__drawer">
+        <span class="mdl-layout-title">Budget and planning</span>
+        <nav class="mdl-navigation">
+            <a class="mdl-navigation__link" href="">Income/Expense</a>
+            <a class="mdl-navigation__link" href="">Reports</a>
+        </nav>
+    </div>
+    <main class="mdl-layout__content">
+        <div id="app" class="page-content">
+            <form action="#" v-on:submit="addNewRecord">
+                <div class="mdl-grid">
+                    <div class="mdl-cell mdl-cell--2-col">
+                        <div class="mdl-textfield mdl-js-textfield">
+                            <input class="mdl-textfield__input" type="date" id="create_date" v-model="newRecord.date">
+                            <label class="mdl-textfield__label" for="create_date"></label>
+                        </div>
+                    </div>
+                    <div class="mdl-cell mdl-cell--1-col">
+                        <select v-model="newRecord.type">
+                            <option v-for="type in types" v-bind:value="type">{{type}}</option>
+                        </select>
+                    </div>
+                    <div class="mdl-cell mdl-cell--1-col">
+                        <select v-model="newRecord.contractor">
+                            <option v-for="contractor in contractors" v-bind:value="contractor">{{contractor}}</option>
+                        </select>
+                    </div>
+                    <div class="mdl-cell mdl-cell--3-col">
+                        <div class="mdl-textfield mdl-js-textfield">
+                            <input class="mdl-textfield__input" type="text" id="create_details"
+                                   v-model="newRecord.details">
+                            <label class="mdl-textfield__label" for="create_details">Details...</label>
+                        </div>
+                    </div>
+                    <div class="mdl-cell mdl-cell--1-col">
+                        <div class="mdl-textfield mdl-js-textfield">
+                            <input class="mdl-textfield__input" type="number" step="0.01" min="0" id="create_sum"
+                                   v-model="newRecord.sum">
+                            <label class="mdl-textfield__label" for="create_sum"></label>
+                        </div>
+                    </div>
+                    <div class="mdl-cell mdl-cell--1-col">
+                        <button type="submit" class="mdl-button mdl-js-button mdl-button--raised">
+                            Add
+                        </button>
+                    </div>
+                </div>
+            </form>
+            <div class="mdl-grid">
+                <div class="mdl-layout-spacer"></div>
+                <button v-bind:class="[showMode==='TABLE' ? 'mdl-button--colored' : '', 'mdl-button mdl-js-button mdl-button--icon']"
+                        v-on:click="setMode('TABLE')">
+                    <i class="material-icons">table_chart</i>
+                </button>
+                <button v-bind:class="[showMode==='CHART' ? 'mdl-button--colored' : '', 'mdl-button mdl-js-button mdl-button--icon']"
+                        v-on:click="setMode('CHART')">
+                    <i class="material-icons">show_chart</i>
+                </button>
+            </div>
+            <table class="mdl-data-table mdl-js-data-table" v-if="showMode==='TABLE'">
+                <thead>
+                <tr>
+                    <th class="mdl-data-table__cell--non-numeric">
+                        Date
+                        <select v-model="filter.date">
+                            <option value="null">All</option>
+                            <option v-for="date in dates" v-bind:value="date">{{date}}</option>
+                        </select>
+                    </th>
+                    <th class="mdl-data-table__cell--non-numeric">
+                        Type
+                        <select v-model="filter.type">
+                            <option value="null">All</option>
+                            <option v-for="type in types" v-bind:value="type">{{type}}</option>
+                        </select>
+                    </th>
+                    <th class="mdl-data-table__cell--non-numeric">
+                        Contractor
+                        <select v-model="filter.contractor">
+                            <option value="null">All</option>
+                            <option v-for="contractor in contractors" v-bind:value="contractor">{{contractor}}
+                            </option>
+                        </select>
+                    </th>
+                    <th class="mdl-data-table__cell--non-numeric">Details</th>
+                    <th>Sum</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="record in records">
+                    <td class="mdl-data-table__cell--non-numeric">{{record.date}}</td>
+                    <td class="mdl-data-table__cell--non-numeric">{{record.type}}</td>
+                    <td class="mdl-data-table__cell--non-numeric">{{record.contractor}}</td>
+                    <td class="mdl-data-table__cell--non-numeric">{{record.details}}</td>
+                    <td>{{record.sum}}</td>
+                </tr>
+                </tbody>
+            </table>
+            <svg v-else v-bind:height="chart.height" v-bind:width="chart.width" class="chart">
+                <g class="axis-line">
+                    <line v-bind:x1="chart.xAxis.x1" v-bind:x2="chart.xAxis.x2" v-bind:y1="chart.xAxis.y1" v-bind:y2="chart.xAxis.y2"></line>
+                </g>
+                <g class="axis-line">
+                    <line v-bind:x1="chart.yAxis.x1" v-bind:x2="chart.yAxis.x2" v-bind:y1="chart.yAxis.y1" v-bind:y2="chart.yAxis.y2"></line>
+                </g>
+                <g class="axis-label">
+                    <text v-bind:x="text.x" v-bind:y="text.y" v-for="text in dynamicChart.xAxisTexts" class="label">{{text.text}}</text>
+                    <text v-bind:x="chart.xAxis.textLabel.x" v-bind:y="chart.xAxis.textLabel.y" class="text-label">
+                        Time
+                    </text>
+                </g>
+                <g class="axis-label">
+                    <text v-bind:x="text.x" v-bind:y="text.y" v-for="text in dynamicChart.yAxisTexts" class="label">{{text.text}}</text>
+                    <text v-bind:x="chart.yAxis.textLabel.x" v-bind:y="chart.yAxis.textLabel.y" class="text-label">
+                        Expense
+                    </text>
+                </g>
+                <g class="data">
+                    <circle v-for="point in dynamicChart.points" r="4" v-bind:cx="point.x" v-bind:cy="point.y"></circle>
+                    <path v-bind:d="dynamicChart.path"></path>
+                </g>
+                <g id="yLabels"></g>
+                <!--<polyline v-bind:points="dynamicChart.polyline" style="fill:none;stroke:black;stroke-width:3"></polyline>-->
+            </svg>
+        </div>
+    </main>
+    <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="js/app.js"></script>
+</div>
+</body>
+</html>
