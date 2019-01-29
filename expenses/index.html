@@ -86,7 +86,7 @@
                     <i class="material-icons">show_chart</i>
                 </button>
             </div>
-            <table class="mdl-data-table mdl-js-data-table" v-if="showMode==='TABLE'">
+            <table class="mdl-data-table mdl-js-data-table fullWidth" v-if="showMode==='TABLE'">
                 <thead>
                 <tr>
                     <th class="mdl-data-table__cell--non-numeric">
@@ -125,31 +125,29 @@
                 </tr>
                 </tbody>
             </table>
-            <svg v-else v-bind:height="chart.height" v-bind:width="chart.width" class="chart">
+            <svg id="chart" v-else v-bind:height="chart.height" v-bind:width="chart.width" class="chart">
                 <g class="axis-line">
-                    <line v-bind:x1="chart.xAxis.x1" v-bind:x2="chart.xAxis.x2" v-bind:y1="chart.xAxis.y1" v-bind:y2="chart.xAxis.y2"></line>
+                    <line v-bind:x1="dynamicChart.xAxis.x1" v-bind:x2="dynamicChart.xAxis.x2" v-bind:y1="dynamicChart.xAxis.y1" v-bind:y2="dynamicChart.xAxis.y2"></line>
                 </g>
                 <g class="axis-line">
-                    <line v-bind:x1="chart.yAxis.x1" v-bind:x2="chart.yAxis.x2" v-bind:y1="chart.yAxis.y1" v-bind:y2="chart.yAxis.y2"></line>
+                    <line v-bind:x1="dynamicChart.yAxis.x1" v-bind:x2="dynamicChart.yAxis.x2" v-bind:y1="dynamicChart.yAxis.y1" v-bind:y2="dynamicChart.yAxis.y2"></line>
                 </g>
                 <g class="axis-label">
                     <text v-bind:x="text.x" v-bind:y="text.y" v-for="text in dynamicChart.xAxisTexts" class="label">{{text.text}}</text>
-                    <text v-bind:x="chart.xAxis.textLabel.x" v-bind:y="chart.xAxis.textLabel.y" class="text-label">
-                        Time
+                    <text id="xTextLabel" v-bind:x="dynamicChart.xTextLabel.x" v-bind:y="dynamicChart.xTextLabel.y" class="text-label">
+                        {{dynamicChart.xTextLabel.text}}
                     </text>
                 </g>
                 <g class="axis-label">
                     <text v-bind:x="text.x" v-bind:y="text.y" v-for="text in dynamicChart.yAxisTexts" class="label">{{text.text}}</text>
-                    <text v-bind:x="chart.yAxis.textLabel.x" v-bind:y="chart.yAxis.textLabel.y" class="text-label">
-                        Expense
+                    <text id="yTextLabel" v-bind:x="dynamicChart.yTextLabel.x" v-bind:y="dynamicChart.yTextLabel.y" class="text-label">
+                        {{dynamicChart.yTextLabel.text}}
                     </text>
                 </g>
                 <g class="data">
                     <circle v-for="point in dynamicChart.points" r="4" v-bind:cx="point.x" v-bind:cy="point.y"></circle>
                     <path v-bind:d="dynamicChart.path"></path>
                 </g>
-                <g id="yLabels"></g>
-                <!--<polyline v-bind:points="dynamicChart.polyline" style="fill:none;stroke:black;stroke-width:3"></polyline>-->
             </svg>
         </div>
     </main>

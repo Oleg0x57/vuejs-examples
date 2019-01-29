@@ -1,10 +1,15 @@
+.fullWidth {
+    width: 100%;
+}
+
 .chart .axis-line {
     stroke: #ccc;
     stroke-width: 1;
 }
 .chart .data {
-    stroke: red;
-    stroke-width: 1;
+    stroke: #5CC0C0;
+    stroke-width: 3;
+    fill: none;
 }
 .chart .data path {
     stroke: #5CC0C0;

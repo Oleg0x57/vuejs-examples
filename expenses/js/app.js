@@ -1,3 +1,12 @@
+var ExpensesChart = {
+    template: '',
+    props: [],
+    data: function () {
+        return [];
+    },
+    methods: {}
+};
+
 var app = new Vue({
     el: '#app',
     data: {
@@ -18,33 +27,17 @@ var app = new Vue({
             details: null,
             sum: null
         },
+        showMode: 'CHART',
         chart: {
             height: 400,
             width: 910,
-            yOffset: {bottom: 20, top: 5},
-            xOffset: {left: 20, top: 10},
-            xAxis: {
-                x1: 50,
-                x2: 50,
-                y1: 5,
-                y2: 380,
-                textLabel: {
-                    x: 400,
-                    y: 390
-                }
-            },
-            yAxis: {
-                x1: 50,
-                x2: 900,
-                y1: 380,
-                y2: 380,
-                textLabel: {
-                    x: 10,
-                    y: 200
-                }
-            }
-        },
-        showMode: 'TABLE'
+            offsetLeft: 10,
+            offsetBottom: 10,
+            offsetRight: 10,
+            offsetTop: 10,
+            xLabel: 'Time',
+            yLabel: 'Expenses'
+        }
     },
     watch: {
         filter: {
@@ -63,50 +56,101 @@ var app = new Vue({
     },
     computed: {
         dynamicChart: function () {
-            var x = 0;
-            var xRatio = 10;
-            var yRatio = 10;
-            var yPoints = [];
-            var maxY = 0;
-            var points = [];
-            var polylinePoints = "";
-            var command = "";
-            var path = "";
-            var xAxis = [];
-            var yAxis = [];
+            var expensesGroupedByMonth = [], maxY = 0, svgNs = "http://www.w3.org/2000/svg",
+                svgRoot = document.getElementById("chart"), sandBoxG = null, sandBoxText = null,
+                sandBoxTextLabel = null, pointOfOrigin = {x: null, y: null}, xTextOffsetBottom = null,
+                yTextOffsetLeft = null, xTexts = [], yTexts = [], x = 0, xRatio = 10, yRatio = 10, points = [],
+                command = "", path = "", i = 0;
             if (this.records.length > 0) {
-                xRatio = Math.round(this.chart.width / this.records.length);
-                yPoints = this.records.filter(function (record) {
+                maxY = this.records.filter(function (record) {
                     return record.type === 'expense';
-                }).map(function (record) {
-                    return record.sum;
+                }).reduce(function (prev, record) {
+                    if (!prev.length) {
+                        prev.push({x: record.date, y: record.sum});
+                    } else {
+                        if (prev[prev.length - 1].x === record.date) {
+                            prev[prev.length - 1].y += record.sum;
+                        } else {
+                            prev.push({x: record.date, y: record.sum});
+                        }
+                    }
+                    return prev;
+                }, expensesGroupedByMonth).reduce(function (max, curr) {
+                    return (max > curr.y) ? max : curr.y;
+                }, maxY);
+                sandBoxG = document.createElementNS(svgNs, "g");
+                svgRoot.appendChild(sandBoxG);
+                sandBoxTextLabel = document.createElementNS(svgNs, "text");
+                sandBoxTextLabel.setAttributeNS(null, "x", this.chart.offsetLeft);
+                sandBoxTextLabel.setAttributeNS(null, "y", "10");
+                sandBoxTextLabel.innerHTML = this.chart.yLabel;
+                sandBoxG.appendChild(sandBoxTextLabel);
+                yTextOffsetLeft = Math.ceil(sandBoxG.getBBox().width);
+                sandBoxText = document.createElementNS(svgNs, "text");
+                sandBoxText.setAttributeNS(null, "x", this.chart.offsetLeft + yTextOffsetLeft);
+                sandBoxText.setAttributeNS(null, "y", "10");
+                sandBoxText.innerHTML = maxY;
+                sandBoxG.appendChild(sandBoxText);
+                pointOfOrigin.x = Math.ceil(sandBoxG.getBBox().width);
+                while (sandBoxG.firstChild) {
+                    sandBoxG.removeChild(sandBoxG.firstChild);
+                }
+                sandBoxTextLabel = document.createElementNS(svgNs, "text");
+                sandBoxTextLabel.setAttributeNS(null, "y", this.chart.offsetBottom);
+                sandBoxTextLabel.setAttributeNS(null, "x", "0");
+                sandBoxTextLabel.innerHTML = this.chart.xLabel;
+                sandBoxG.appendChild(sandBoxTextLabel);
+                xTextOffsetBottom = Math.ceil(sandBoxG.getBBox().height);
+                sandBoxText = document.createElementNS(svgNs, "text");
+                sandBoxText.setAttributeNS(null, "y", this.chart.offsetBottom + xTextOffsetBottom);
+                sandBoxText.setAttributeNS(null, "x", "0");
+                sandBoxText.innerHTML = maxY;
+                sandBoxG.appendChild(sandBoxText);
+                pointOfOrigin.y = this.chart.height - Math.ceil(sandBoxG.getBBox().height);
+                while (sandBoxG.firstChild) {
+                    sandBoxG.removeChild(sandBoxG.firstChild);
+                }
+                yRatio = (pointOfOrigin.y - this.chart.offsetTop) / maxY;
+                xRatio = Math.round((this.chart.width - this.chart.offsetRight - pointOfOrigin.x) / expensesGroupedByMonth.length);
+                points = expensesGroupedByMonth.map(function (point) {
+                    command = command === '' ? 'M' : 'L';
+                    path = path + " " + command + " " + (x * xRatio + pointOfOrigin.x) + "," + (pointOfOrigin.y - point.y * yRatio);
+                    xTexts.push({
+                        x: (x * xRatio + pointOfOrigin.x),
+                        y: (pointOfOrigin.y + xTextOffsetBottom),
+                        text: point.x
+                    });
+                    return {x: (x++ * xRatio + pointOfOrigin.x), y: (pointOfOrigin.y - point.y * yRatio)};
                 });
-                maxY = Math.max.apply(null, yPoints);
-                yRatio = this.chart.height / maxY;
-                console.log(yPoints, maxY, xRatio, yRatio);
-                points = yPoints.map(function (point) {
-                    x++;
-                    return {x: x * xRatio, y: point * yRatio};
-                });
-                points.map(function (point, index) {
-                   command = index === 0 ? 'M' : 'L';
-                    path = path + " " + command + " " + point.x + "," + point.y;
-                });
-                polylinePoints = points.map(function (point) {
-                    return point.x + ',' + point.y;
-                }).join(" ");
-                x = 0;
-                xAxis = this.records.filter(function (record) {
-                    return record.type === 'expense';
-                }).map(function (record) {
-                    x++;
-                    return {x: x * xRatio, y: 390, text: record.date};
-                });
-                for (var i = this.chart.height; i > 0; i -= 40) {
-                    yAxis.push({x: 50, y: i, text: this.chart.height - i});
+
+                for (i = maxY; i > 0; i -= 60 / yRatio) {
+                    yTexts.push({x: yTextOffsetLeft, y: Math.round(i * yRatio), text: Math.round(maxY - i)});
                 }
             }
-            return {path: path, points: points, polyline: polylinePoints, xAxisTexts: xAxis, yAxisTexts: yAxis};
+            return {
+                path: path,
+                points: points,
+                xAxisTexts: xTexts,
+                yAxisTexts: yTexts,
+                yAxis: {
+                    x1: pointOfOrigin.x,
+                    x2: pointOfOrigin.x,
+                    y1: this.chart.offsetTop,
+                    y2: pointOfOrigin.y,
+                },
+                xAxis: {
+                    x1: pointOfOrigin.x,
+                    x2: this.chart.width - this.chart.offsetRight,
+                    y1: pointOfOrigin.y,
+                    y2: pointOfOrigin.y,
+                },
+                yTextLabel: {
+                    x: this.chart.offsetLeft, y: this.chart.height / 2, text: this.chart.yLabel
+                },
+                xTextLabel: {
+                    x: this.chart.width / 2, y: this.chart.height - this.chart.offsetBottom, text: this.chart.xLabel
+                }
+            };
         }
     },
     mounted: function () {
