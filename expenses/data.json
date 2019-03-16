@@ -1,0 +1,85 @@
+{
+  "records": [
+    {
+      "type": "income",
+      "date": "15.11.2018",
+      "contractor": "job",
+      "details": "salary",
+      "sum": 54000.11
+    },
+    {
+      "type": "expense",
+      "date": "15.11.2018",
+      "contractor": "self",
+      "details": "dinner",
+      "sum": 252.3
+    },
+    {
+      "type": "expense",
+      "date": "15.11.2018",
+      "contractor": "car",
+      "details": "gasoline",
+      "sum": 2000.16
+    },
+    {
+      "type": "expense",
+      "date": "16.11.2018",
+      "contractor": "self",
+      "details": "kfc",
+      "sum": 303
+    },
+    {
+      "type": "expense",
+      "date": "16.11.2018",
+      "contractor": "self",
+      "details": "metro",
+      "sum": 80
+    },
+    {
+      "type": "expense",
+      "date": "17.11.2018",
+      "contractor": "family",
+      "details": "goods",
+      "sum": 1264
+    },
+    {
+      "type": "expense",
+      "date": "17.11.2018",
+      "contractor": "self",
+      "details": "dremel",
+      "sum": 1590
+    },
+    {
+      "type": "expense",
+      "date": "17.11.2018",
+      "contractor": "cube",
+      "details": "car insurance",
+      "sum": 1694.11
+    },
+    {
+      "type": "expense",
+      "date": "17.11.2018",
+      "contractor": "family",
+      "details": "papers",
+      "sum": 198.01
+    },
+    {
+      "type": "expense",
+      "date": "17.11.2018",
+      "contractor": "family",
+      "details": "medicine",
+      "sum": 1143
+    }
+  ],
+  "reference_types": [
+    "income",
+    "expense"
+  ],
+  "contractors": [
+    "job",
+    "self",
+    "car",
+    "family",
+    "cube"
+  ]
+}
