@@ -1,5 +1,8 @@
 <template>
   <div id="app">
+    <ul class="tasks">
+      <li v-for="task in tasks" v-bind:key="task.id">{{task.title}}</li>
+    </ul>
   </div>
 </template>
 
@@ -7,7 +10,18 @@
 
 
 export default {
-  name: 'app'
+  name: 'app',
+  data(){
+    return {
+      tasks: []
+    }
+  },
+  async mounted(){
+    const res = await fetch('https://jsonplaceholder.typicode.com/todos?_limit=5')
+    const tasks = await res.json()
+    this.tasks = tasks
+  }
+
 }
 </script>
 
